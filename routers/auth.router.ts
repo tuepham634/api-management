@@ -1,0 +1,29 @@
+import { Router } from 'express';
+import {
+  register,
+  login,
+  getProfile,
+  forgotPassword,
+  resetPassword,
+  changePassword
+} from '../controllers/auth.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
+import {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+  validateChangePassword
+} from '../validations/auth.validation';
+
+const router = Router();
+
+router.post('/register', validateRegister, register);
+router.post('/login', validateLogin, login);
+router.post('/forgot-password', validateForgotPassword, forgotPassword);
+router.post('/reset-password', validateResetPassword, resetPassword);
+
+router.get('/profile', authMiddleware, getProfile);
+router.post('/change-password', authMiddleware, validateChangePassword, changePassword);
+
+export default router;
