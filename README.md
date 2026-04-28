@@ -178,27 +178,175 @@ Content-Type: application/json
 - Email validation với regex pattern
 - Password minimum length: 6 ký tự
 
-## 🧪 Test API với cURL
+## 🧪 Test API
 
-### Đăng ký:
+### Sử dụng cURL
+
+#### 1. Đăng ký user mới
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"123456","name":"Test User"}'
+  -d '{"email":"newuser@example.com","password":"123456","name":"Nguyen Van B"}'
 ```
 
-### Đăng nhập:
+**Response:**
+```json
+{
+  "message": "Đăng ký thành công",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### 2. Đăng nhập
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"123456"}'
+  -d '{"email":"newuser@example.com","password":"123456"}'
 ```
 
-### Lấy profile:
+**Response:**
+```json
+{
+  "message": "Đăng nhập thành công",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Lưu accessToken để sử dụng cho các request tiếp theo!**
+
+#### 3. Lấy thông tin profile
 ```bash
 curl -X GET http://localhost:3000/api/auth/profile \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "email": "newuser@example.com",
+    "name": "Nguyen Van B",
+    "createdAt": "2026-04-28T10:00:00.000Z"
+  }
+}
+```
+
+#### 4. Đổi mật khẩu
+```bash
+curl -X POST http://localhost:3000/api/auth/change-password \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currentPassword":"123456","newPassword":"newpass789"}'
+```
+
+**Response:**
+```json
+{
+  "message": "Đổi mật khẩu thành công"
+}
+```
+
+#### 5. Quên mật khẩu
+```bash
+curl -X POST http://localhost:3000/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email":"newuser@example.com"}'
+```
+
+**Response:**
+```json
+{
+  "message": "Nếu email tồn tại, link reset mật khẩu đã được gửi",
+  "resetToken": "abc123xyz789"
+}
+```
+
+#### 6. Reset mật khẩu
+```bash
+curl -X POST http://localhost:3000/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{"token":"RESET_TOKEN_HERE","newPassword":"newpass123"}'
+```
+
+**Response:**
+```json
+{
+  "message": "Đổi mật khẩu thành công"
+}
+```
+
+---
+
+### Sử dụng Postman
+
+#### Setup Environment
+1. Tạo environment mới trong Postman
+2. Thêm biến:
+   - `base_url`: `http://localhost:3000`
+   - `accessToken`: (để trống, sẽ tự động set)
+
+#### Auto-save Token
+Trong request **Login** hoặc **Register**, vào tab **Tests** và thêm:
+```javascript
+var jsonData = pm.response.json();
+pm.environment.set("accessToken", jsonData.accessToken);
+```
+
+#### Sử dụng Token
+Trong các request cần authentication:
+1. Tab **Authorization**
+2. Type: **Bearer Token**
+3. Token: `{{accessToken}}`
+
+#### Collection Structure
+```
+📁 API Management
+  📂 Auth
+    ├── POST Register
+    ├── POST Login
+    ├── GET Profile (protected)
+    ├── POST Change Password (protected)
+    ├── POST Forgot Password
+    └── POST Reset Password
+```
+
+---
+
+### Test Flow Hoàn Chỉnh
+
+```bash
+# 1. Đăng ký user mới
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test'$(date +%s)'@example.com","password":"123456","name":"Test User"}' \
+  | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+
+echo "Access Token: $TOKEN"
+
+# 2. Lấy profile
+curl -X GET http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer $TOKEN"
+
+# 3. Đổi mật khẩu
+curl -X POST http://localhost:3000/api/auth/change-password \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currentPassword":"123456","newPassword":"newpass789"}'
+```
+
+---
+
+### Seed Database
+
+Tạo user test trong database:
+```bash
+npm run seed
+```
+
+User test được tạo:
+- Email: `test@example.com`
+- Password: `123456`
 
 ## 📄 License
 

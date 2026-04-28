@@ -49,7 +49,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getProfile = (req: AuthenticatedRequest, res: Response): void => {
+export const getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     
@@ -58,7 +58,7 @@ export const getProfile = (req: AuthenticatedRequest, res: Response): void => {
       return;
     }
 
-    const user = getUserProfile(userId);
+    const user = await getUserProfile(userId);
 
     res.status(200).json({ user });
   } catch (error: any) {
